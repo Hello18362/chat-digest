@@ -791,16 +791,21 @@
   function openLeaders() {
     if (!state.group) { toast('先选择一个目标群聊', { kind: 'err' }); return; }
     $('#leadersGroup').textContent = state.group;
-    // 从原始配置里找到当前群已有的领导
-    var cfg = state.groupsConfig.target_groups || [];
-    var hit = cfg.filter(function (g) { return g.name === state.group; })[0];
-    state.leadersDraft = (hit && hit.leaders ? hit.leaders : []).map(function (l) {
-      return { name: l.name || '', id: l.id || '' };
+
+    // 每次打开都先拉一次最新配置：保存时可能刚把新群追加进 groups.yaml，
+    // 继续用内存里的旧配置会渲染成空名单，看起来像「加了又没了」。
+    // loadGroupsConfig 内部已 catch，拉取失败就用现有缓存，不会卡住面板。
+    loadGroupsConfig().then(function () {
+      var cfg = state.groupsConfig.target_groups || [];
+      var hit = cfg.filter(function (g) { return g.name === state.group; })[0];
+      state.leadersDraft = (hit && hit.leaders ? hit.leaders : []).map(function (l) {
+        return { name: l.name || '', id: l.id || '' };
+      });
+      renderLeadersList();
+      leadersRoot.hidden = false;
+      $('.scrim', leadersRoot).classList.add('is-on');
+      setTimeout(function () { $('#leaderName').focus(); }, 60);
     });
-    renderLeadersList();
-    leadersRoot.hidden = false;
-    $('.scrim', leadersRoot).classList.add('is-on');
-    setTimeout(function () { $('#leaderName').focus(); }, 60);
   }
 
   function closeLeaders() {
@@ -840,8 +845,12 @@
         body: JSON.stringify({ group: state.group, leaders: state.leadersDraft })
       }).then(function (data) {
         toast('已保存：关注 ' + data.leader_count + ' 人');
-        // 刷新群列表里的「领导 N 人」标注
-        loadGroups();
+        // 保存可能刚把新群追加进 groups.yaml：必须先刷新配置（面板下次打开读它），
+        // 再刷新群列表的「领导 N 人」标注，最后才关弹窗。
+        return loadGroupsConfig();
+      }).then(function () {
+        return loadGroups();
+      }).then(function () {
         closeLeaders();
       }).catch(function (e) { toast('保存失败：' + e.message, { kind: 'err' }); });
     });

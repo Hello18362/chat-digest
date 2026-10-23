@@ -548,7 +548,7 @@ class HubHandler(BaseHTTPRequestHandler):
             return self._error("leaders 必须是数组")
         try:
             save_group_leaders(group, leaders)
-        except ConfigError as exc:
+        except Exception as exc:  # 兜底：任何写入异常都返回可读错误，而不是裸 500
             return self._error(f"保存失败：{exc}", 500)
         logger.info("控制台更新了群「%s」的领导名单（%d 人）", group, len(leaders))
         self._json({"ok": True, "group": group, "leader_count": len(leaders)})
