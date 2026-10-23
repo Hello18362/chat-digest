@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -21,7 +22,18 @@ logger = get_logger("config")
 # --------------------------------------------------------------------------- #
 # 路径常量
 # --------------------------------------------------------------------------- #
-PROJECT_ROOT: Path = Path(__file__).resolve().parents[1]
+def _detect_project_root() -> Path:
+    """源码运行时指向项目根；PyInstaller 打包后指向 exe 所在目录。
+
+    这样打包成桌面软件后，config/、runs/、logs/、.env 都放在 exe 旁边，
+    用户可以直接修改和查看，不必进到 _internal 目录里。
+    """
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parents[1]
+
+
+PROJECT_ROOT: Path = _detect_project_root()
 
 
 def _resolve_config_dir() -> Path:

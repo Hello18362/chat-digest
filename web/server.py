@@ -27,6 +27,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from collector.chatlog_client import build_client_from_config
 from core.config import (
+    PROJECT_ROOT,
     ConfigError,
     load_groups,
     load_groups_raw,
@@ -39,7 +40,8 @@ from core.pipeline import PipelineError, RunOptions, run_pipeline
 
 logger = get_logger("web")
 
-ASSETS_DIR = Path(__file__).resolve().parent / "assets"
+# 打包成 exe 后前端资源在 exe 旁边的 web/assets/，不能按 __file__ 定位到 _internal
+ASSETS_DIR = PROJECT_ROOT / "web" / "assets"
 MAX_TASKS = 30
 MAX_LOGS = 200
 MAX_BODY_BYTES = 1 << 20  # 请求体上限，防止恶意 Content-Length 把内存打爆

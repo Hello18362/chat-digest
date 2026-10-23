@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -96,15 +97,26 @@ def setup_logging(cfg: Dict[str, Any]) -> logging.Logger:
 
     log_dir = Path(str(dig(cfg, "logging.dir", "./logs"))).expanduser()
     if not log_dir.is_absolute():
-        log_dir = Path(__file__).resolve().parents[1] / log_dir
+        # 打包成 exe 后日志也要落在 exe 旁边，而不是 _internal 里；
+        # 这里不复用 core.config.PROJECT_ROOT，避免 config <-> log 循环导入。
+        base = (
+            Path(sys.executable).resolve().parent
+            if getattr(sys, "frozen", False)
+            else Path(__file__).resolve().parents[1]
+        )
+        log_dir = base / log_dir
     log_dir.mkdir(parents=True, exist_ok=True)
 
     file_name = str(dig(cfg, "logging.file", "hub.log"))
     max_bytes = int(dig(cfg, "logging.max_bytes", 5242880) or 5242880)
     backup = int(dig(cfg, "logging.backup_count", 5) or 5)
 
-    # 控制台
-    console = logging.StreamHandler(sys.stdout)
+    # 控制台。注意：PyInstaller --windowed（pythonw）下 sys.stdout / sys.stderr
+    # 可能为 None，直接传给 StreamHandler 会在 emit 时 AttributeError，这里兜底到 devnull。
+    _stream = sys.stdout or sys.stderr
+    if _stream is None:
+        _stream = open(os.devnull, "w", encoding="utf-8")
+    console = logging.StreamHandler(_stream)
     console.setFormatter(ConsoleFormatter(color=_supports_color()))
     console.setLevel(logger.level)
     logger.addHandler(console)

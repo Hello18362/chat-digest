@@ -36,8 +36,11 @@ dependencies = [
 # （.env 由 core/config.py 自己解析，不引入 python-dotenv；HTML 由内置渲染器生成，不需要 markdown 库。）
 [project.optional-dependencies]
 asr = ["faster-whisper>=1.0.3"]
+# 桌面软件：pywebview 提供原生窗口；pyinstaller 仅打包时需要
+desktop = ["pywebview>=4.2"]
+build = ["pyinstaller>=6.0"]
 dev = ["wheel>=0.42"]
-all = ["faster-whisper>=1.0.3"]
+all = ["faster-whisper>=1.0.3", "pywebview>=4.2"]
 
 [project.scripts]
 chatdigest = "main:main"

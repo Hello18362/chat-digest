@@ -35,6 +35,7 @@ _wheel_check/
 venv/
 build/
 dist/
+*.spec
 
 # 编辑器 / 系统
 .idea/
