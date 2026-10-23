@@ -1,0 +1,127 @@
+# Chat Digest 配置文件
+# ---------------------------------------------------------------------------
+# 所有可变参数都在这里，代码里不做硬编码。
+# 修改后无需改代码，重启程序即生效。
+
+chatlog:
+  # 数据源模式：
+  #   sqlite = 直读本机已导出的数据库（推荐）
+  #   http   = chatlog HTTP 服务（已停更，仅兼容保留）
+  # 配置了 decrypted_dir 且目录有效时自动走 sqlite，无需手动切换。
+  api_base: "http://127.0.0.1:5030"
+  # 已导出的数据库目录。这是本机绝对路径，属于隐私，不写进仓库；
+  # 请在项目根目录的 .env 里配置：WX_DECRYPTED_DIR=你的目录
+  decrypted_dir: ""
+  # 单次请求超时秒数
+  timeout: 15
+  # 分页拉取时每页条数
+  page_size: 500
+  # 最多翻多少页，防止无限翻页卡死
+  max_pages: 20
+  # 接口路径模板（适配 chatlog 版本差异，一般不用改）
+  endpoints:
+    chatlog: "/api/v1/chatlog"
+    chatroom: "/api/v1/chatroom"
+    contact: "/api/v1/contact"
+    session: "/api/v1/session"
+    health: "/health"
+    voice: "/voice/{key}"
+    image: "/image/{key}"
+    video: "/video/{key}"
+    file: "/file/{key}"
+    data: "/data/{path}"
+
+# ---------------------------------------------------------------------------
+# 语音转写（faster-whisper）
+# ---------------------------------------------------------------------------
+asr:
+  # 总开关：false 时所有语音直接降级为 [语音]
+  enabled: true
+  # faster-whisper 模型名：tiny / base / small / medium / large-v3
+  model: "large-v3"
+  device: "cpu"
+  compute_type: "int8"
+  # 识别语言，留空自动检测
+  language: "zh"
+  beam_size: 5
+  vad_filter: true
+  # SILK 转码工具命令；留空则优先尝试 ffmpeg
+  silk_decoder: ""
+  # 超过该时长（秒）的语音跳过转写，防止单条卡死
+  max_duration: 300
+
+# ---------------------------------------------------------------------------
+# 图片理解
+# ---------------------------------------------------------------------------
+vision:
+  # dummy = 返回占位符（零成本）；doubao = 调火山方舟视觉模型
+  provider: "dummy"
+  model: "doubao-vision-pro"
+  timeout: 30
+  # 单次运行最多处理多少张图，防止刷爆额度
+  max_images: 20
+  # 调用失败时的兜底文案
+  fallback_text: "图片"
+
+# ---------------------------------------------------------------------------
+# 公众号正文抓取
+# ---------------------------------------------------------------------------
+article:
+  enabled: true
+  timeout: 15
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+  # 正文最大保留字符数，超出截断，避免把 prompt 塞爆
+  max_chars: 3000
+  # 单次失败是否重试
+  retry: 1
+
+# ---------------------------------------------------------------------------
+# 总结环节
+# ---------------------------------------------------------------------------
+summarizer:
+  # deepseek   = 接 DeepSeek 在线大模型自动总结（默认；需在 .env 配 DEEPSEEK_API_KEY）
+  # file_output = 写成待处理文件，交给外部 AI CLI（零成本兜底，缺 Key 时自动回落）
+  # doubao     = 接火山方舟豆包
+  #
+  # 说明：默认走 deepseek，但**没配 Key 时会自动回落到 file_output**，
+  # 不会报错，也不会把聊天内容发到任何地方。
+  provider: "deepseek"
+  # 使用的 prompt 模板名（对应 config/prompts/<name>.md）
+  prompt_template: "leader_brief"
+  # 在线模式下使用的模型名；按需换成 deepseek-flash 或你自己的模型端点名
+  model: "deepseek-chat"
+  # file_output 模式下待处理文件的落盘目录
+  pending_dir: "./runs/pending"
+  max_input_chars: 60000
+
+# ---------------------------------------------------------------------------
+# 输出
+# ---------------------------------------------------------------------------
+output:
+  dir: "./runs"
+  # markdown / html / 两者都要就写两个
+  format: ["markdown", "html"]
+  # HTML 报告主题：light / dark
+  html_theme: "light"
+  # 是否在 Markdown 头部写入统计元信息
+  include_meta: true
+
+# ---------------------------------------------------------------------------
+# 日志
+# ---------------------------------------------------------------------------
+logging:
+  level: "INFO"
+  dir: "./logs"
+  # 单文件最大 5MB，最多留 5 份
+  max_bytes: 5242880
+  backup_count: 5
+  file: "hub.log"
+
+# ---------------------------------------------------------------------------
+# 本地控制台（Python 内置 http.server，零额外依赖）
+# ---------------------------------------------------------------------------
+web:
+  enabled: true
+  host: "127.0.0.1"
+  port: 5710
+  open_browser: true

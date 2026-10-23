@@ -1,0 +1,44 @@
+# 环境与密钥
+.env
+.env.*
+!.env.example
+
+# 运行产物
+runs/*
+!runs/.gitkeep
+logs/*
+!logs/.gitkeep
+*.log
+
+# 本机私有脚本（数据刷新流程，因人而异，不进仓库）
+local_refresh.bat
+
+# 解密数据 / 微信相关（绝对禁止上传）
+*.db
+*.db-wal
+*.db-shm
+.wechat_media/
+
+# 缓存与临时文件
+cache/
+tmp/
+__pycache__/
+*.py[cod]
+*.part
+*.egg-info/
+_build/
+_wheel_check/
+.pytest_cache/
+
+# Python
+.venv/
+venv/
+build/
+dist/
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.claude/
+.DS_Store
+Thumbs.db

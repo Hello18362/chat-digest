@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chat Digest · 控制台</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-mark">W</div>
+  <div class="nav-titles">
+    <h1 class="nav-title">Chat Digest</h1>
+    <div class="nav-sub">本地微信群聊 · 多模态 AI 工作助手</div>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="status" id="status" data-state="checking">
+    <span class="status-dot"></span>
+    <span class="status-text">正在检测服务…</span>
+  </div>
+  <label class="switch">
+    <input class="switch-input" type="checkbox" id="themeSwitch">
+    <span class="switch-track"><span class="switch-thumb"></span></span>
+  </label>
+</header>
+
+<main class="wrap">
+
+  <!-- Hero：大色块网格（07-4） -->
+  <section class="hero">
+    <div class="hero-card">
+      <div class="hero-kicker">本次采集</div>
+      <div class="hero-num" id="heroNum" data-count="0">0</div>
+      <div class="hero-sub" id="heroSub">运行一次任务后，这里显示采集到的消息总数</div>
+      <div class="run-bar" id="runBar" hidden>
+        <div class="run-fill" id="runFill"></div>
+        <span class="run-stage" id="runStage">准备中</span>
+      </div>
+    </div>
+    <div class="hero-grid">
+      <div class="stat"><span class="stat-val" id="statRuns" data-count="0">0</span><span class="stat-key">历史报告</span></div>
+      <div class="stat is-accent"><span class="stat-val" id="statLeader" data-count="0">0</span><span class="stat-key">领导发言</span></div>
+      <div class="stat"><span class="stat-val" id="statVoice" data-count="0">0</span><span class="stat-key">语音转写</span></div>
+      <div class="stat"><span class="stat-val" id="statImage" data-count="0">0</span><span class="stat-key">图片链接</span></div>
+    </div>
+  </section>
+
+  <!-- 操作面板 -->
+  <section class="panel board">
+    <div class="board-row">
+      <!-- 群选择：下拉展开面板（01-13 变体） -->
+      <div class="field">
+        <span class="field-label">目标群聊</span>
+        <button class="control" id="groupBtn" aria-expanded="false">
+          <span id="groupLabel">请选择群聊</span>
+          <span class="caret">▾</span>
+        </button>
+        <div class="pop" id="groupPop" hidden>
+          <input class="pop-search" id="groupSearch" placeholder="搜索群名…">
+          <ul class="pop-list" id="groupList"></ul>
+        </div>
+      </div>
+
+      <!-- 日期：从标签下方展开（01-14） -->
+      <div class="field">
+        <span class="field-label">日期</span>
+        <button class="control" id="dateBtn" aria-expanded="false">
+          <span id="dateLabel">今天</span>
+          <span class="caret">▾</span>
+        </button>
+        <div class="pop pop-cal" id="datePop" hidden>
+          <div class="cal-head">
+            <button class="cal-nav" data-step="-1">‹</button>
+            <span id="calMonth">2026-10</span>
+            <button class="cal-nav" data-step="1">›</button>
+          </div>
+          <div class="cal-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-quick">
+            <button data-quick="today">今天</button>
+            <button data-quick="yesterday">昨天</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt 模板 -->
+      <div class="field">
+        <span class="field-label">总结模板</span>
+        <button class="control" id="tplBtn" aria-expanded="false">
+          <span id="tplLabel">leader_brief</span>
+          <span class="caret">▾</span>
+        </button>
+        <div class="pop" id="tplPop" hidden><ul class="pop-list" id="tplList"></ul></div>
+      </div>
+
+      <!-- 只看领导：弹性开关（04-2） -->
+      <div class="field field-inline">
+        <label class="switch switch-lg">
+          <input class="switch-input" type="checkbox" id="leadersOnly">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+          <span class="switch-text">只看领导发言</span>
+        </label>
+      </div>
+
+      <div class="board-actions">
+        <!-- 领导设置：打开关注人编辑面板 -->
+        <button class="btn-ghost press" id="leadersBtn">
+          <span class="btn-label">设置关注的人</span>
+        </button>
+        <!-- 运行按钮：点击后原地变成进度条（02-3） -->
+        <button class="btn-primary press" id="runBtn">
+          <span class="btn-label">生成工作报告</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主体：左侧群分类 + 右侧报告列表（07-18 分类联动滚动） -->
+  <div class="layout">
+    <aside class="rail">
+      <p class="rail-title">按群浏览</p>
+      <ul class="rail-list" id="railList">
+        <li class="rail-bar" aria-hidden="true"></li>
+      </ul>
+      <div class="rail-foot">
+        <!-- 危险操作：滑动确认（02-4） -->
+        <div class="slider" id="wipeSlider">
+          <div class="slider-track">
+            <span class="slider-text">滑动清理全部报告</span>
+            <span class="slider-fill" id="wipeFill"></span>
+            <span class="slider-knob" id="wipeKnob">→</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div class="content-head">
+        <h2 class="section-title">历史报告</h2>
+        <div class="content-meta" id="runsMeta">—</div>
+      </div>
+      <div class="stream" id="runsStream"></div>
+    </section>
+  </div>
+
+  <footer class="foot">
+    <span>数据全程留在本机 · 只在本地 127.0.0.1 提供服务</span>
+    <span id="footPath"></span>
+  </footer>
+</main>
+
+<!-- 领导/关注人设置面板 -->
+<div class="modal-root" id="leadersRoot" hidden>
+  <div class="scrim"></div>
+  <article class="modal-card leaders-card" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <span class="modal-title">设置关注的人（领导）</span>
+      <button class="modal-x" id="leadersClose" aria-label="关闭">✕</button>
+    </div>
+    <p class="leaders-hint">为当前选中的群指定要重点关注的成员。生成报告时，他们的发言会自动打上「领导」标记并被重点提炼。</p>
+    <div class="leaders-target">
+      <span class="field-label">当前群聊</span>
+      <span class="leaders-group" id="leadersGroup">—</span>
+    </div>
+    <div class="leaders-add">
+      <input class="leaders-input" id="leaderName" placeholder="输入成员昵称，如 张总" maxlength="40">
+      <button class="chip-btn leaders-add-btn" id="leaderAdd">添加</button>
+    </div>
+    <ul class="leaders-list" id="leadersList"></ul>
+    <div class="leaders-foot">
+      <span class="leaders-count" id="leadersCount">未添加任何人</span>
+      <button class="btn-primary press" id="leadersSave">保存</button>
+    </div>
+  </article>
+</div>
+
+<!-- 卡片弹出详情（01-8） -->
+<div class="modal-root" id="modalRoot" hidden>
+  <div class="scrim"></div>
+  <article class="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <span class="modal-title" id="modalTitle"></span>
+      <button class="modal-x" aria-label="关闭">✕</button>
+    </div>
+    <div class="modal-tools">
+      <button class="chip-btn" id="modalOpenHtml">打开 HTML 报告</button>
+      <button class="chip-btn" id="modalCopy">复制 Markdown</button>
+    </div>
+    <pre class="modal-body" id="modalBody"></pre>
+  </article>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+<button class="to-top" id="toTop" aria-label="回到顶部">↑</button>
+
+<script src="/assets/app.js"></script>
+</body>
+</html>

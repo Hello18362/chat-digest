@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chat-digest"
+version = "0.1.0"
+description = "本地优先的微信群聊多模态 AI 工作助手：采集、多模态处理、任务抽取"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Chat Digest contributors" }]
+keywords = ["wechat", "chatlog", "llm", "summary", "local-first", "asr", "ocr"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Groupware",
+    "Topic :: Text Processing :: Linguistic",
+]
+
+# 最小核心依赖：只保留跑通链路必需的三件套。
+dependencies = [
+    "requests>=2.31.0",
+    "PyYAML>=6.0.1",
+    "beautifulsoup4>=4.12.0",
+]
+
+# 可选依赖按需安装，避免 MVP 阶段环境过重。
+# （.env 由 core/config.py 自己解析，不引入 python-dotenv；HTML 由内置渲染器生成，不需要 markdown 库。）
+[project.optional-dependencies]
+asr = ["faster-whisper>=1.0.3"]
+dev = ["wheel>=0.42"]
+all = ["faster-whisper>=1.0.3"]
+
+[project.scripts]
+chatdigest = "main:main"
+
+# 发布到 GitHub 后填上真实地址：
+# [project.urls]
+# Homepage = "https://github.com/<owner>/chat-digest"
+# Repository = "https://github.com/<owner>/chat-digest"
+# Issues = "https://github.com/<owner>/chat-digest/issues"
+
+[tool.setuptools]
+# main.py 是顶层模块（不是包），漏了它 `chatdigest` 入口点装了也跑不起来。
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+include = [
+    "collector*",
+    "processor*",
+    "summarizer*",
+    "output*",
+    "core*",
+    "web*",
+    "config*",
+]
+
+# 非 Python 资源：控制台前端 + 默认配置/提示词模板。
+# 少了这两行，pip 装出来的版本没有页面、也没有 settings.yaml。
+[tool.setuptools.package-data]
+web = ["assets/*"]
+config = ["*.yaml", "prompts/*.md"]
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+profile = "black"

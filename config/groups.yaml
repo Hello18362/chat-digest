@@ -1,0 +1,26 @@
+# 目标群聊与「领导」名单
+# ---------------------------------------------------------------------------
+# 复制一份按自己的情况改：name 必须和群显示名完全一致（含空格、emoji）。
+# 不配置也能跑，只是报告里不会打 [领导] 标记。
+#
+# 注意：这个文件会进 git，请不要把真实群名、真实昵称、真实 wxid 提交上来。
+
+target_groups:
+  - name: "XX项目工作群"
+    enabled: true
+    leaders:
+      - name: "张总"
+        id: "wxid_xxxx"
+      - name: "李经理"
+        id: "wxid_yyyy"
+
+  - name: "部门周会群"
+    enabled: true
+    leaders:
+      - name: "王总监"
+        id: "wxid_zzzz"
+
+# 跨群都要关注的老板放这里（对所有 target_groups 生效）
+global_leaders:
+  - name: "陈总"
+    id: ""
