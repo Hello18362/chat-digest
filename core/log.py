@@ -66,9 +66,25 @@ _HUB_LOGGER = "chatdigest"
 _configured = False
 
 
+def force_utf8_console() -> None:
+    """把 stdout / stderr 切到 UTF-8，避免非中文代码页的 Windows 上中文输出直接崩。
+
+    英文版 Windows 的控制台代码页默认是 cp1252 / cp437，`print("中文")` 会抛
+    `UnicodeEncodeError` 并中断程序。切成 utf-8 且 `errors="replace"` 后，
+    最坏情况只是显示成问号，不会让进程挂掉。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+        except (AttributeError, ValueError, OSError):  # pragma: no cover - 老版本/特殊流
+            pass
+
+
 def setup_logging(cfg: Dict[str, Any]) -> logging.Logger:
     """依据配置初始化 hub logger（幂等，重复调用不会叠加 handler）。"""
     global _configured
+
+    force_utf8_console()
 
     logger = logging.getLogger(_HUB_LOGGER)
     level = str(dig(cfg, "logging.level", "INFO")).upper()

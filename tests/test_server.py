@@ -19,6 +19,15 @@ from urllib.error import HTTPError
 from urllib.parse import quote
 
 BASE = os.environ.get("CHAT_DIGEST_URL", "http://127.0.0.1:5710").rstrip("/")
+
+# 这个脚本会打印中文提示；英文版 Windows 的控制台代码页是 cp1252，
+# 不切 UTF-8 的话 print 直接抛 UnicodeEncodeError。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError, OSError):
+        pass
+
 PROXY_OFF = urllib.request.ProxyHandler({})  # 本地服务不该走系统代理
 _opener = urllib.request.build_opener(PROXY_OFF)
 

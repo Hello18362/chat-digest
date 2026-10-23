@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import unicodedata
 import webbrowser
 from pathlib import Path
 from typing import List, Optional
@@ -22,7 +23,7 @@ from typing import List, Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from core.config import ConfigError, load_groups, load_settings  # noqa: E402
-from core.log import get_logger, setup_logging  # noqa: E402
+from core.log import force_utf8_console, get_logger, setup_logging  # noqa: E402
 from core.pipeline import PipelineError, RunOptions, run_pipeline  # noqa: E402
 from core.stats import format_duration  # noqa: E402
 
@@ -35,12 +36,21 @@ RED = "\033[31m"
 RESET = "\033[0m"
 
 
+def _display_width(text: str) -> int:
+    """按终端显示宽度计算字符数（中日韩全角字符占两列）。"""
+    return sum(2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1 for ch in text)
+
+
 def banner(version: str = "0.1.0") -> str:
-    """返回启动横幅。"""
+    """返回启动横幅；边框按实际显示宽度自适应，避免中英混排时错位。"""
+    title = "Chat Digest  ·  本地微信群聊多模态 AI 工作助手"
+    inner = _display_width(title) + 4  # 左右各留 2 个空格
+    top = "  ┌" + "─" * inner + "┐"
+    bottom = "  └" + "─" * inner + "┘"
     return f"""{CYAN}
-  ┌─────────────────────────────────────────────────────────┐
-  │   Chat Digest  ·  本地微信群聊多模态 AI 工作助手     │
-  └─────────────────────────────────────────────────────────┘{RESET}
+{top}
+  │  {title}  │
+{bottom}{RESET}
   {DIM}v{version} · 数据全程留在本机{RESET}
 """
 
@@ -49,7 +59,7 @@ def banner(version: str = "0.1.0") -> str:
 # 控制台进度条
 # --------------------------------------------------------------------------- #
 class ProgressBar:
-    """轻量命令行进度条（参考 UI 提示词「按钮变进度条」的信息密度）。
+    """轻量命令行进度条（信息密度参考「按钮变进度条」这一交互模式）。
 
     非 TTY 环境下自动退化为不打印任何东西，避免污染重定向输出。
     """
@@ -215,6 +225,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     Returns:
         退出码：0 成功，1 运行失败，2 参数错误。
     """
+    force_utf8_console()  # 必须在打印横幅之前：横幅里全是中文
     parser = build_parser()
     args = parser.parse_args(argv)
 
