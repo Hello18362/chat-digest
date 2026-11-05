@@ -31,7 +31,7 @@
 ## 30 秒看效果（不需要微信，不需要 API Key）
 
 ```bash
-git clone <this-repo> && cd chat-digest
+git clone https://github.com/Hello18362/chat-digest.git && cd chat-digest
 python -m pip install -e .
 
 # 用合成数据跑一遍完整链路，产出 4 份报告

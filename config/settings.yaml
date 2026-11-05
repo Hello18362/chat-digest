@@ -88,7 +88,7 @@ summarizer:
   provider: "deepseek"
   # 使用的 prompt 模板名（对应 config/prompts/<name>.md）
   prompt_template: "leader_brief"
-  # 在线模式下使用的模型名；按需换成 deepseek-flash 或你自己的模型端点名
+  # 在线模式下使用的模型名；默认 deepseek-chat，可换成 deepseek-reasoner 或你自己部署的端点名
   model: "deepseek-chat"
   # file_output 模式下待处理文件的落盘目录
   pending_dir: "./runs/pending"
